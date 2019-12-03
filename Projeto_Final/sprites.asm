@@ -1,5 +1,8 @@
 .include "graphics.inc"
-
+.data
+#Screen 
+screenWidth: 	.word 36
+screenHeight: 	.word 36
 #Snake Information
 snakeHeadX: 	.word 5
 snakeHeadY:	.word 3
@@ -25,15 +28,7 @@ newDirectionChangeArray:	.word 0:100
 arrayPosition:			.word 0
 locationInArray:		.word 0
 
-.text  
-.globl main
-main:
-	# CHAMA DRAW GRID
-    li $a0, GRID_ROWS
-    li $a1, GRID_COLS
-    la $a2, grid_hard
-    jal draw_grid
-    
+.text
 ######################################################
 # Initialize Variables
 ######################################################
@@ -46,7 +41,7 @@ Init:
 	li $t0, 3
 	sw $t0, snakeTailY
 	sw $t0, snakeHeadY
-	li $t0, 97
+	li $t0, 100
 	sw $t0, direction
 	sw $t0, tailDirection
 	sw $zero, arrayPosition
@@ -74,7 +69,65 @@ ClearRegisters:
 	li $s2, 0
 	li $s3, 0
 	li $s4, 0
-    
+
+.globl main
+main:
+	# CHAMA DRAW GRID
+	li $a0, GRID_ROWS
+        li $a1, GRID_COLS
+        la $a2, grid_easy
+        jal draw_grid  
+
+DrawRightLoop:
+	#check for collision before moving to next pixel
+	lw $a0, snakeHeadX
+	lw $a1, snakeHeadY
+	lw $a2, direction	
+	#draw head in new position, move X position right
+	lw $t0, snakeHeadX
+	lw $t1, snakeHeadY
+	addiu $t0, $t0, 1
+	add $a0, $t0, $zero
+	add $a1, $t1, $zero
+	lw $v0, screenWidth 	#Store screen width into $v0
+	mul $v0, $v0, $a1	#multiply by y position
+	add $v0, $v0, $a0	#add the x position
+	mul $v0, $v0, 4		#multiply by 4
+	add $v0, $v0, 0x1004000	#add heap pointer from bitmap display
+	add $a0, $v0, $zero
+	
+	
+	sw  $t0, snakeHeadX
+	j UpdateTailPosition #head updated, update tail
+
+######################################################
+# Update Snake Tail Position
+######################################################
+
+UpdateTailPosition:
+	lw $t2, tailDirection	
+    	beq  $t2, 100, MoveTailRight
+
+MoveTailRight:
+	#get the screen coordinates of the next direction change
+	lw $t8, locationInArray
+	#get the base address of the coordinate array
+	la $t0, directionChangeAddressArray
+	#go to the correct index of array
+	add $t0, $t0, $t8
+	#get the data from the array
+	lw $t9, 0($t0)
+	#get current tail position
+	lw $a0, snakeTailX
+	lw $a1, snakeTailY
+	#if the length needs to be increased
+	#do not change coordinates
+	beq $s1, 1, IncreaseLengthRight
+	#change tail position
+	addiu $a0, $a0, 1
+	#store new tail position
+	sw $a0, snakeTailX
+    	
 # draw_grid(width, height, grid_table)
 .globl draw_grid
 draw_grid:
@@ -212,6 +265,7 @@ set_pixel:
    
 # mostra_cor(byte cor)
 # a0 = byte cor
+.globl mostra_cor:
 mostra_cor:
 	
 	sll	$t0, $a0, 2	#byte da cor *4 transforma inteiro
@@ -220,10 +274,9 @@ mostra_cor:
 	lw	$v0, ($t2)
 	jr	$ra
 
-# animated sprite {
-#	int id;
-#	char x;
-#	char y;
-#	char mov_x;
-#	char mov_y;	
-#}	
+# animated sprite (int id, char x, char y, char mov_x, char mov_y)
+.globl animated_sprite
+animated_sprite:
+	
+	
+	
