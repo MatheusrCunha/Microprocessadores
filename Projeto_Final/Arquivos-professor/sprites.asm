@@ -1,15 +1,79 @@
 .include "graphics.inc"
 
-.text
+#Snake Information
+snakeHeadX: 	.word 5
+snakeHeadY:	.word 3
+snakeTailX:	.word 4
+snakeTailY:	.word 3
+direction:	.word 97 #initially moving up
+tailDirection:	.word 97
+# direction variable
+# 119 - moving up - W
+# 115 - moving down - S
+# 97 - moving left - A
+# 100 - moving right - D
+# numbers are selected due to ASCII characters
+
+#this array stores the screen coordinates of a direction change
+#once the tail hits a position in this array, its direction is changed
+#this is used to have the tail follow the head correctly
+directionChangeAddressArray:	.word 0:100
+#this stores the new direction for the tail to move once it hits
+#an address in the above array
+newDirectionChangeArray:	.word 0:100
+#stores the position of the end of the array (multiple of 4)
+arrayPosition:			.word 0
+locationInArray:		.word 0
+
+.text  
 .globl main
 main:
 	# CHAMA DRAW GRID
     li $a0, GRID_ROWS
     li $a1, GRID_COLS
-    la $a2, grid_easy
-    jal draw_grid    
-
+    la $a2, grid_hard
+    jal draw_grid
     
+######################################################
+# Initialize Variables
+######################################################
+Init:
+
+	li $t0, 5
+	sw $t0, snakeHeadX
+	li $t0, 4
+	sw $t0, snakeTailX
+	li $t0, 3
+	sw $t0, snakeTailY
+	sw $t0, snakeHeadY
+	li $t0, 97
+	sw $t0, direction
+	sw $t0, tailDirection
+	sw $zero, arrayPosition
+	sw $zero, locationInArray
+	
+ClearRegisters:
+
+	li $v0, 0
+	li $a0, 0
+	li $a1, 0
+	li $a2, 0
+	li $a3, 0
+	li $t0, 0
+	li $t1, 0
+	li $t2, 0
+	li $t3, 0
+	li $t4, 0
+	li $t5, 0
+	li $t6, 0
+	li $t7, 0
+	li $t8, 0
+	li $t9, 0
+	li $s0, 0
+	li $s1, 0
+	li $s2, 0
+	li $s3, 0
+	li $s4, 0
     
 # draw_grid(width, height, grid_table)
 .globl draw_grid
@@ -155,3 +219,11 @@ mostra_cor:
 	add	$t2, $t0, $t1	# t2 = endereço base de colors mais o valor do da cor desejada
 	lw	$v0, ($t2)
 	jr	$ra
+
+# animated sprite {
+#	int id;
+#	char x;
+#	char y;
+#	char mov_x;
+#	char mov_y;	
+#}	

@@ -9,7 +9,9 @@
 
 .eqv GRID_ROWS 36       
 .eqv GRID_COLS 36
-  
+
+.eqv SPRITE_SIZE 49
+
 .data
 # 36x36 Snake Arena - Sprites 7x7
 grid_easy:
@@ -107,7 +109,6 @@ colors: .word BLACK, DYELLOW, YELLOW, LYELLOW, BLUE, LBLUE
         .word DGRAY, GRAY, LGRAY, DGREEN, GREEN, LGREEN
 	.word DRED, RED, LRED
 
-.eqv SPRITE_SIZE 49
 sprites:
 .byte 0,0,0,0,0,0,0
 .byte 0,0,1,1,1,0,0
