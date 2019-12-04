@@ -1,8 +1,5 @@
 .include "graphics.inc"
-.data
-#Screen 
-screenWidth: 	.word 36
-screenHeight: 	.word 36
+
 #Snake Information
 snakeHeadX: 	.word 5
 snakeHeadY:	.word 3
@@ -28,7 +25,55 @@ newDirectionChangeArray:	.word 0:100
 arrayPosition:			.word 0
 locationInArray:		.word 0
 
-.text
+.text  
+.globl main
+main:
+	# CHAMA DRAW GRID
+	li $a0, GRID_ROWS
+	li $a1, GRID_COLS
+	la $a2, grid_hard
+	jal draw_grid
+	
+	li $s1, 5 
+	
+aaa:
+	bge $s1, 35, fim
+	li $a0, 26
+	lw $a1, snakeHeadX
+	lw $a2, snakeHeadY
+	li $a3, 1
+	li $s0, 0
+	jal animated_sprite
+	
+	add $a1, $a1, $a3
+	add $a2, $a2, $s0
+	
+	sw $a1, snakeHeadX
+	sw $a2, snakeHeadY
+	
+	
+	li $a0, 25
+	lw $a1, snakeTailX
+	lw $a2, snakeTailY
+	li $a3, 1
+	li $s0, 0
+	jal animated_sprite
+	
+	add $a1, $a1, $a3
+	add $a2, $a2, $s0
+	
+	sw $a1, snakeTailX
+	sw $a2, snakeTailY
+	
+	add $s1, $s1, 1
+	
+	j aaa
+fim:
+	li $v0, 10
+	syscall
+	
+	
+	    
 ######################################################
 # Initialize Variables
 ######################################################
@@ -41,7 +86,7 @@ Init:
 	li $t0, 3
 	sw $t0, snakeTailY
 	sw $t0, snakeHeadY
-	li $t0, 100
+	li $t0, 97
 	sw $t0, direction
 	sw $t0, tailDirection
 	sw $zero, arrayPosition
@@ -69,65 +114,7 @@ ClearRegisters:
 	li $s2, 0
 	li $s3, 0
 	li $s4, 0
-
-.globl main
-main:
-	# CHAMA DRAW GRID
-	li $a0, GRID_ROWS
-        li $a1, GRID_COLS
-        la $a2, grid_easy
-        jal draw_grid  
-
-DrawRightLoop:
-	#check for collision before moving to next pixel
-	lw $a0, snakeHeadX
-	lw $a1, snakeHeadY
-	lw $a2, direction	
-	#draw head in new position, move X position right
-	lw $t0, snakeHeadX
-	lw $t1, snakeHeadY
-	addiu $t0, $t0, 1
-	add $a0, $t0, $zero
-	add $a1, $t1, $zero
-	lw $v0, screenWidth 	#Store screen width into $v0
-	mul $v0, $v0, $a1	#multiply by y position
-	add $v0, $v0, $a0	#add the x position
-	mul $v0, $v0, 4		#multiply by 4
-	add $v0, $v0, 0x1004000	#add heap pointer from bitmap display
-	add $a0, $v0, $zero
-	
-	
-	sw  $t0, snakeHeadX
-	j UpdateTailPosition #head updated, update tail
-
-######################################################
-# Update Snake Tail Position
-######################################################
-
-UpdateTailPosition:
-	lw $t2, tailDirection	
-    	beq  $t2, 100, MoveTailRight
-
-MoveTailRight:
-	#get the screen coordinates of the next direction change
-	lw $t8, locationInArray
-	#get the base address of the coordinate array
-	la $t0, directionChangeAddressArray
-	#go to the correct index of array
-	add $t0, $t0, $t8
-	#get the data from the array
-	lw $t9, 0($t0)
-	#get current tail position
-	lw $a0, snakeTailX
-	lw $a1, snakeTailY
-	#if the length needs to be increased
-	#do not change coordinates
-	beq $s1, 1, IncreaseLengthRight
-	#change tail position
-	addiu $a0, $a0, 1
-	#store new tail position
-	sw $a0, snakeTailX
-    	
+    
 # draw_grid(width, height, grid_table)
 .globl draw_grid
 draw_grid:
@@ -202,10 +189,10 @@ draw_sprite:
 	sw	$s4, 28($sp)
 	sw	$ra, 32($sp)		#pilha inicializada
 
-	add	$s0, $a0, $zero		# x = a0 + 0 -> a0 = posiÁ„o x passada para a funÁ„o
-	addi	$s1, $s0, 7		# x_max = x + 7		cada bloco È composto por 7 pixels
-	add	$s2, $a1, $zero		# y = a1 + 0 -> a0 = posiÁ„o y passada para a funÁ„o
-	addi	$s3, $s2, 7		# y_max = y + 7		cada bloco È composto por 7 pixels
+	add	$s0, $a0, $zero		# x = a0 + 0 -> a0 = posi√ß√£o x passada para a fun√ß√£o
+	addi	$s1, $s0, 7		# x_max = x + 7		cada bloco √© composto por 7 pixels
+	add	$s2, $a1, $zero		# y = a1 + 0 -> a0 = posi√ß√£o y passada para a fun√ß√£o
+	addi	$s3, $s2, 7		# y_max = y + 7		cada bloco √© composto por 7 pixels
 	
 	la	$t0, sprites		# t0 = &sprite
 	mul	$t1, $a2, SPRITE_SIZE	# t1 = sprite_id * tamanho maximo
@@ -248,7 +235,7 @@ end_for_y:
 	lw	$s3, 24($sp)
 	lw	$s4, 28($sp)
 	lw	$ra, 32($sp)				#carrega o valor armazenado na pilha para os registradores
-	addi	$sp, $sp, 40				#apaga a pilha ao mover o pointer para a posiÁ„o acima da sua origem
+	addi	$sp, $sp, 40				#apaga a pilha ao mover o pointer para a posi√ß√£o acima da sua origem
 
     	jr   $ra
 
@@ -265,23 +252,69 @@ set_pixel:
    
 # mostra_cor(byte cor)
 # a0 = byte cor
-.globl mostra_cor:
+.globl mostra_cor
 mostra_cor:
 	
 	sll	$t0, $a0, 2	#byte da cor *4 transforma inteiro
 	la	$t1, colors	#t1 = &colors
-	add	$t2, $t0, $t1	# t2 = endereÁo base de colors mais o valor do da cor desejada
+	add	$t2, $t0, $t1	# t2 = endere√ßo base de colors mais o valor do da cor desejada
 	lw	$v0, ($t2)
 	jr	$ra
 
-<<<<<<< Updated upstream:Projeto_Final/sprites.asm
-# animated sprite (int id, char x, char y, char mov_x, char mov_y)
-=======
 
+0
 #animated_sprite(id, x, y, mov_x, mov_y)	
->>>>>>> Stashed changes:Projeto_Final/Arquivos-professor/sprites.asm
 .globl animated_sprite
 animated_sprite:
+
+	addi	$sp, $sp, -32
+	sw	$a0, ($sp)
+	sw	$a1, 4($sp)
+	sw	$a2, 8($sp)
+	sw	$s0, 12($sp)
+	sw	$s1, 16($sp)
+	sw	$s2, 20($sp)
+	sw	$s3, 24($sp)
+	sw	$ra, 28($sp)
 	
+	move $s1, $a2
+	move $a2, $a0
+	move $a0, $a1
+	move $a1, $s1
 	
+	addi $a0, $a0, -1
+	addi $a1, $a1, -1
+	
+	mul $a0, $a0, 7
+	mul $a1, $a1, 7
+	
+	li $s2, 0
+	li $s3, 7
+	
+loop_animated:	
+
+	bge $s2, $s3, fim_animated
+	
+	add $a0, $a0, $a3
+	add $a1, $a1, $s0
+	
+	jal draw_sprite
+	
+	addi $s2, $s2, 1
+	
+	j loop_animated
+	
+fim_animated:
+	
+	lw	$a0, ($sp)
+	lw	$a1, 4($sp)
+	lw	$a2, 8($sp)
+	lw	$s0, 12($sp)
+	lw	$s1, 16($sp)
+	lw	$s2, 20($sp)
+	lw	$s3, 24($sp)
+	lw	$ra, 28($sp)
+	addi	$sp, $sp, 32
+	
+	jr $ra
 	
