@@ -280,7 +280,7 @@ animated_sprite:
 	sw	$s1, 16($sp)
 	sw	$s2, 20($sp)
 	sw	$s3, 24($sp)
-	sw	$ra, 28($sp)		#pilha inicializada
+	sw	$ra, 28($sp)		
 	
 	move $s1, $a2
 	move $a2, $a0
