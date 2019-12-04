@@ -29,11 +29,51 @@ locationInArray:		.word 0
 .globl main
 main:
 	# CHAMA DRAW GRID
-    li $a0, GRID_ROWS
-    li $a1, GRID_COLS
-    la $a2, grid_hard
-    jal draw_grid
-    
+	li $a0, GRID_ROWS
+	li $a1, GRID_COLS
+	la $a2, grid_hard
+	jal draw_grid
+	
+	li $s1, 5 
+	
+aaa:
+	bge $s1, 35, fim
+	li $a0, 26
+	lw $a1, snakeHeadX
+	lw $a2, snakeHeadY
+	li $a3, 1
+	li $s0, 0
+	jal animated_sprite
+	
+	add $a1, $a1, $a3
+	add $a2, $a2, $s0
+	
+	sw $a1, snakeHeadX
+	sw $a2, snakeHeadY
+	
+	
+	li $a0, 25
+	lw $a1, snakeTailX
+	lw $a2, snakeTailY
+	li $a3, 1
+	li $s0, 0
+	jal animated_sprite
+	
+	add $a1, $a1, $a3
+	add $a2, $a2, $s0
+	
+	sw $a1, snakeTailX
+	sw $a2, snakeTailY
+	
+	add $s1, $s1, 1
+	
+	j aaa
+fim:
+	li $v0, 10
+	syscall
+	
+	
+	    
 ######################################################
 # Initialize Variables
 ######################################################
@@ -212,6 +252,7 @@ set_pixel:
    
 # mostra_cor(byte cor)
 # a0 = byte cor
+.globl mostra_cor
 mostra_cor:
 	
 	sll	$t0, $a0, 2	#byte da cor *4 transforma inteiro
@@ -226,4 +267,63 @@ mostra_cor:
 #	char y;
 #	char mov_x;
 #	char mov_y;	
-#}	
+#}
+#animated_sprite(id, x, y, mov_x, mov_y)	
+.globl animated_sprite
+animated_sprite:
+
+	addi	$sp, $sp, -36
+	sw	$a0, ($sp)
+	sw	$a1, 4($sp)
+	sw	$a2, 8($sp)
+	sw	$s0, 12($sp)
+	sw	$s1, 16($sp)
+	sw	$s2, 20($sp)
+	sw	$s3, 24($sp)
+	sw	$s4, 28($sp)
+	sw	$ra, 32($sp)		#pilha inicializada
+	
+	move $s1, $a2
+	move $a2, $a0
+	move $a0, $a1
+	move $a1, $s1
+	
+	addi $a0, $a0, -1
+	addi $a1, $a1, -1
+	
+	mul $a0, $a0, 7
+	mul $a1, $a1, 7
+	
+	li $s2, 0
+	li $s3, 7
+	
+loop_animated:	
+
+	bge $s2, $s3, fim_animated
+	
+	add $a0, $a0, $a3
+	add $a1, $a1, $s0
+	
+	jal draw_sprite
+	
+	addi $s2, $s2, 1
+	
+	j loop_animated
+	
+fim_animated:
+	
+	lw	$a0, ($sp)
+	lw	$a1, 4($sp)
+	lw	$a2, 8($sp)
+	lw	$s0, 12($sp)
+	lw	$s1, 16($sp)
+	lw	$s2, 20($sp)
+	lw	$s3, 24($sp)
+	lw	$s4, 28($sp)
+	lw	$ra, 32($sp)
+	addi	$sp, $sp, 36
+	
+	jr $ra
+	
+	
+	
