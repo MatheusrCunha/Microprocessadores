@@ -261,6 +261,8 @@ mostra_cor:
 	lw	$v0, ($t2)
 	jr	$ra
 
+
+
 #animated_sprite(id, x, y, mov_x, mov_y)	
 .globl animated_sprite
 animated_sprite:
