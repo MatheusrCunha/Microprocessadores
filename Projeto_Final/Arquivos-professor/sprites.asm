@@ -272,7 +272,7 @@ mostra_cor:
 .globl animated_sprite
 animated_sprite:
 
-	addi	$sp, $sp, -36
+	addi	$sp, $sp, -32
 	sw	$a0, ($sp)
 	sw	$a1, 4($sp)
 	sw	$a2, 8($sp)
@@ -280,8 +280,7 @@ animated_sprite:
 	sw	$s1, 16($sp)
 	sw	$s2, 20($sp)
 	sw	$s3, 24($sp)
-	sw	$s4, 28($sp)
-	sw	$ra, 32($sp)		#pilha inicializada
+	sw	$ra, 28($sp)		#pilha inicializada
 	
 	move $s1, $a2
 	move $a2, $a0
@@ -319,9 +318,8 @@ fim_animated:
 	lw	$s1, 16($sp)
 	lw	$s2, 20($sp)
 	lw	$s3, 24($sp)
-	lw	$s4, 28($sp)
-	lw	$ra, 32($sp)
-	addi	$sp, $sp, 36
+	lw	$ra, 28($sp)
+	addi	$sp, $sp, 32
 	
 	jr $ra
 	
