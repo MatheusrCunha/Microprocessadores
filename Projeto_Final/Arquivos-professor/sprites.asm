@@ -261,13 +261,6 @@ mostra_cor:
 	lw	$v0, ($t2)
 	jr	$ra
 
-# animated sprite {
-#	int id;
-#	char x;
-#	char y;
-#	char mov_x;
-#	char mov_y;	
-#}
 #animated_sprite(id, x, y, mov_x, mov_y)	
 .globl animated_sprite
 animated_sprite:
@@ -280,7 +273,7 @@ animated_sprite:
 	sw	$s1, 16($sp)
 	sw	$s2, 20($sp)
 	sw	$s3, 24($sp)
-	sw	$ra, 28($sp)		
+	sw	$ra, 28($sp)
 	
 	move $s1, $a2
 	move $a2, $a0
