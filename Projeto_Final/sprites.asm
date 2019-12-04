@@ -274,7 +274,12 @@ mostra_cor:
 	lw	$v0, ($t2)
 	jr	$ra
 
+<<<<<<< Updated upstream:Projeto_Final/sprites.asm
 # animated sprite (int id, char x, char y, char mov_x, char mov_y)
+=======
+
+#animated_sprite(id, x, y, mov_x, mov_y)	
+>>>>>>> Stashed changes:Projeto_Final/Arquivos-professor/sprites.asm
 .globl animated_sprite
 animated_sprite:
 	
