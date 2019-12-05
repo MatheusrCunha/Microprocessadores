@@ -34,15 +34,15 @@ main:
 	la $a2, grid_hard
 	jal draw_grid
 	
-	li $s1, 4 
+	li $s1, 5 
 	
 aaa:
 	bge $s1, 35, fim
 	li $a0, 26
 	lw $a1, snakeHeadX
 	lw $a2, snakeHeadY
-	li $a3, 1
-	li $s0, 0
+	li $a3, 0
+	li $s0, 1
 	jal animated_sprite
 	
 	add $a1, $a1, $a3
@@ -55,8 +55,8 @@ aaa:
 	li $a0, 25
 	lw $a1, snakeTailX
 	lw $a2, snakeTailY
-	li $a3, 1
-	li $s0, 0
+	li $a3, 0
+	li $s0, 1
 	jal animated_sprite
 	
 	add $a1, $a1, $a3
@@ -66,6 +66,10 @@ aaa:
 	sw $a2, snakeTailY
 	
 	add $s1, $s1, 1
+	
+	li $a0, 500
+	li $v0, 32
+	syscall
 	
 	j aaa
 fim:
@@ -189,10 +193,10 @@ draw_sprite:
 	sw	$s4, 28($sp)
 	sw	$ra, 32($sp)		#pilha inicializada
 
-	add	$s0, $a0, $zero		# x = a0 + 0 -> a0 = posiÃ§Ã£o x passada para a funÃ§Ã£o
-	addi	$s1, $s0, 7		# x_max = x + 7		cada bloco Ã© composto por 7 pixels
-	add	$s2, $a1, $zero		# y = a1 + 0 -> a0 = posiÃ§Ã£o y passada para a funÃ§Ã£o
-	addi	$s3, $s2, 7		# y_max = y + 7		cada bloco Ã© composto por 7 pixels
+	add	$s0, $a0, $zero		# x = a0 + 0 -> a0 = posição x passada para a função
+	addi	$s1, $s0, 7		# x_max = x + 7		cada bloco é composto por 7 pixels
+	add	$s2, $a1, $zero		# y = a1 + 0 -> a0 = posição y passada para a função
+	addi	$s3, $s2, 7		# y_max = y + 7		cada bloco é composto por 7 pixels
 	
 	la	$t0, sprites		# t0 = &sprite
 	mul	$t1, $a2, SPRITE_SIZE	# t1 = sprite_id * tamanho maximo
@@ -235,7 +239,7 @@ end_for_y:
 	lw	$s3, 24($sp)
 	lw	$s4, 28($sp)
 	lw	$ra, 32($sp)				#carrega o valor armazenado na pilha para os registradores
-	addi	$sp, $sp, 40				#apaga a pilha ao mover o pointer para a posiÃ§Ã£o acima da sua origem
+	addi	$sp, $sp, 40				#apaga a pilha ao mover o pointer para a posição acima da sua origem
 
     	jr   $ra
 
@@ -257,7 +261,7 @@ mostra_cor:
 	
 	sll	$t0, $a0, 2	#byte da cor *4 transforma inteiro
 	la	$t1, colors	#t1 = &colors
-	add	$t2, $t0, $t1	# t2 = endereÃ§o base de colors mais o valor do da cor desejada
+	add	$t2, $t0, $t1	# t2 = endereço base de colors mais o valor do da cor desejada
 	lw	$v0, ($t2)
 	jr	$ra
 
@@ -266,23 +270,21 @@ mostra_cor:
 .globl animated_sprite
 animated_sprite:
 
-	addi	$sp, $sp, -32
+	addi	$sp, $sp, -36
 	sw	$a0, ($sp)
 	sw	$a1, 4($sp)
 	sw	$a2, 8($sp)
-	sw	$s0, 12($sp)
-	sw	$s1, 16($sp)
-	sw	$s2, 20($sp)
-	sw	$s3, 24($sp)
-	sw	$ra, 28($sp)
+	sw	$a3, 12($sp)
+	sw	$s0, 16($sp)
+	sw	$s1, 20($sp)
+	sw	$s2, 24($sp)
+	sw	$s3, 28($sp)
+	sw	$ra, 32($sp)
 	
 	move $s1, $a2
 	move $a2, $a0
 	move $a0, $a1
 	move $a1, $s1
-	
-	addi $a0, $a0, -1
-	addi $a1, $a1, -1
 	
 	mul $a0, $a0, 7
 	mul $a1, $a1, 7
@@ -308,12 +310,15 @@ fim_animated:
 	lw	$a0, ($sp)
 	lw	$a1, 4($sp)
 	lw	$a2, 8($sp)
-	lw	$s0, 12($sp)
-	lw	$s1, 16($sp)
-	lw	$s2, 20($sp)
-	lw	$s3, 24($sp)
-	lw	$ra, 28($sp)
-	addi	$sp, $sp, 32
+	lw	$a3, 12($sp)
+	lw	$s0, 16($sp)
+	lw	$s1, 20($sp)
+	lw	$s2, 24($sp)
+	lw	$s3, 28($sp)
+	lw	$ra, 32($sp)
+	addi	$sp, $sp, 36
 	
 	jr $ra
+	
+	
 	
