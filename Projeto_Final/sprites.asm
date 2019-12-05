@@ -33,6 +33,7 @@ main:
 	li $a1, GRID_COLS
 	la $a2, grid_hard
 	jal draw_grid
+	jal enableKeyboardInterrupt	# void enableKeyboardInterrupt()
 	
 	li $s1, 5 
 	
@@ -320,5 +321,207 @@ fim_animated:
 	
 	jr $ra
 	
+############################################################################################################# 	
+    	  	  	
+.ktext 0x80000180  
+
+#Create Interuptions Stack 
+  	move $k0, $at      # $k0 = $at 
+  	la   $k1, kernelRegisters    
+  	sw   $k0, 0($k1)   
+  	sw   $v0, 4($k1)
+  	sw   $v1, 8($k1)
+  	sw   $a0, 16($k1)
+  	sw   $a1, 20($k1)
+ 	sw   $a2, 24($k1)
+  	sw   $a3, 28($k1)
+ 	#sw   $t0, 32($k1)
+	#sw   $t1, 36($k1) 
+	#sw   $t2, 40($k1)
+	#sw   $t3, 44($k1)
+	#sw   $t4, 48($k1)
+  	#sw   $t5, 52($k1)
+	#sw   $t6, 56($k1)
+	#sw   $t7, 60($k1)
+	#sw   $s0, 64($k1)
+	#sw   $s1, 68($k1)
+	#sw   $s2, 72($k1)
+	#sw   $s3, 76($k1) 
+	#sw   $s4, 80($k1)
+	#sw   $s5, 84($k1)
+	#sw   $s6, 88($k1)
+	#sw   $s7, 92($k1)
+	#sw   $t8, 96($k1)
+	#sw   $t9, 100($k1)
+	sw   $gp, 104($k1)
+	sw   $sp, 108($k1)
+	sw   $fp, 112($k1)
+	sw   $ra, 116($k1)
+	mfhi $k0
+  	sw   $k0, 120($k1)
+  	mflo $k0
+  	sw	$k0, 124($k1)
+  	
+printStringAdress(stringGenericEx)
 	
+	mfc0	$s0, $13
+	andi	$s0, 0xFC
+	srl	$s0, $s0, 2
+
+  	la 	$s1, jtable	#load andress of vector
+  	add 	$s1, $s1, $s0 	# jtable adress
+  	lw	$s1, 0($s1)	# Carrego valor do elemento em $a1
+  	jr 	$s1
+  
+case0:
+	printStringAdress(stringHWInterruptEx)
+
+	la  	$s0, kbBuffer	# Load Sprite adress , Sprite Name
+	lw 	$s1, 0($s0) 	# Load kbBuffer.isValid
+ 	lw 	$s2, 4($s0)	# Load kbBuffer.x
+ 	lw 	$s3, 8($s0)	# Load kbBuffer.y
+	lw 	$s4, 12($s0)	# Load kbBuffer.isPaused
+	
+	la 	$s7, 0xffff0004  	# Load keyboard info on $s1 to the right address
+	lw 	$s7, ($s7)		# Load keyboard data from 0xffff0004
+	
+	beq 	$s7,100, hwInterruptGoRight	# Key d, go Right
+	beq 	$s7, 68, hwInterruptGoRight	# Key D, go Right
+	beq 	$s7, 97, hwInterruptGoLeft	# Key a, go Left
+	beq 	$s7, 65, hwInterruptGoLeft	# Key A, go Left
+	beq 	$s7,119, hwInterruptGoUp	# Key w, go Up
+	beq 	$s7, 87, hwInterruptGoUp	# Key W, go Up
+	beq 	$s7,115, hwInterruptGoDown	# Key s, go Down
+	beq 	$s7, 83, hwInterruptGoDown	# Key S, go Down
+	beq 	$s7, 32, hwInterruptPause	# Key Space, Pause game
+	beq 	$s7, 10, hwInterruptEnter	# Key Enter, Restart game if paused
+	b   	interruptEnd
+    
+hwInterruptGoRight:
+
+	li  	$s2, 1	#x
+	li  	$s3, 0	#y
+	li  	$s4, 0	#isPaused
+ 	b 	hwInterruptEnd
+ 	
+hwInterruptGoLeft:
+
+	li  	$s2, -1	#x
+	li  	$s3, 0	#y
+	li  	$s4, 0	#isPaused
+ 	b 	hwInterruptEnd
+ 	
+hwInterruptPause:
+	
+	beq $s4, 0, hwInterruptPauseIsZero
+	beq $s4, 1, hwInterruptPauseIsOne
+	
+hwInterruptPauseIsZero:
+	li  	$s4, 1	#isPaused
+ 	b 	hwInterruptEnd
+ 	
+hwInterruptPauseIsOne:	
+	li  	$s4, 0	#isPaused
+ 	b 	hwInterruptEnd
+ 	
+hwInterruptEnter:
+
+	beq 	$s4, 0, hwInterruptEnd	
+	
+	add	$s1, $zero, $zero	# s1 = 0;
+ 	sw 	$s1, 0($s0) 	# kbBuffer.isValid = 0;
+ 	sw 	$s1, 4($s0)	# kbBuffer.x = 0;
+ 	sw 	$s1, 8($s0)	# kbBuffer.y = 0;
+	sw 	$s1, 12($s0)	# kbBuffer.isPaused = 0;
+	
+	la	$k0, startGame
+	mtc0	$k0, $14      # EPC = point to next instruction 
+	eret
+
+hwInterruptGoUp:
+
+	li  	$s2, 0	#x
+	li  	$s3, -1	#y
+	li  	$s4, 0	#isPaused
+ 	b 	hwInterruptEnd
+ 	
+hwInterruptGoDown:
+	li  	$s2, 0	#x
+	li  	$s3, 1	#y
+	li  	$s4, 0	#isPaused
+ 	b 	hwInterruptEnd
+ 	
+hwInterruptEnd:
+
+ 	addi	$s1, $zero, 1	# s1 = 1;
+ 	sw 	$s1, 0($s0) 	# kbBuffer.isValid = 1;
+ 	sw 	$s2, 4($s0)	# kbBuffer.x = s2;
+ 	sw 	$s3, 8($s0)	# kbBuffer.y = s3;
+	sw 	$s4, 12($s0)	# kbBuffer.isPaused = s4;
+ 	
+	b   	interruptEnd
+
+default:
+
+	printStringAdress(stringOutOfRangeEx)
+	
+interruptEnd:
+#Restore Interuptions Stack 
+	la    	$k1, kernelRegisters
+	lw    	$k0, 0($k1)
+	lw    	$v0, 4($k1)
+	lw    	$v1, 8($k1)
+	lw    	$a0, 16($k1)
+	lw    	$a1, 20($k1)
+	lw    	$a2, 24($k1)
+	lw    	$a3, 28($k1)
+	#lw    	$t0, 32($k1)
+	#lw    	$t1, 36($k1) 
+	#lw    	$t2, 40($k1)
+	#lw    	$t3, 44($k1)
+	#lw    	$t4, 48($k1)
+	#lw    	$t5, 52($k1)
+	#lw    	$t6, 56($k1)
+	#lw    	$t7, 60($k1)
+	#lw    	$s0, 64($k1)
+	#lw    	$s1, 68($k1)
+	#lw    	$s2, 72($k1)
+	#lw    	$s3, 76($k1) 
+	#lw    	$s4, 80($k1)
+	#lw    	$s5, 84($k1)
+	#lw    	$s6, 88($k1)
+	#lw    	$s7, 92($k1)
+	#lw    	$t8, 96($k1)
+	#lw    	$t9, 100($k1)
+	lw    	$gp, 104($k1)
+	lw    	$sp, 108($k1)
+	lw    	$fp, 112($k1)
+	lw    	$ra, 116($k1)
+	lw    	$k0, 120($k1)
+	mthi  	$k0
+	lw    	$k0, 124($k1)
+	mtlo  	$k0
+	#mfc0  	$k0, $14      # $k0 = EPC 
+	#addiu 	$k0, $k0, 4   # Increment $k0 by 4 
+	#mtc0  	$k0, $14      # EPC = point to next instruction 
+	#eret
+	
+	# the default interruption return does not work with this project,
+	# since the edited values cant be changed betwen pacman main funtions. 
+
+	la	$k0, main
+	mtc0	$k0, $14      # EPC = point to next instruction 
+	eret
+	
+.kdata
+jtable: .word case0, default
+
+.align 2
+# Excepion String Table
+stringGenericEx: 	.asciiz "\n Exception Occurred: "
+stringHWInterruptEx:	.asciiz "HW Interrupt\n"
+stringOutOfRangeEx: 	.asciiz "Out Of Range\n"
+stringHere: 	.asciiz "here!\n"
+.align 2
+kernelRegisters: .space    256
 	
