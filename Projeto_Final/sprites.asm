@@ -1,10 +1,10 @@
 .include "graphics.inc"
 
 #Snake Information
-snakeHeadX: 	.word 5
-snakeHeadY:	.word 3
-snakeTailX:	.word 4
-snakeTailY:	.word 3
+snakeHeadX: 	.word 4
+snakeHeadY:	.word 2
+snakeTailX:	.word 3
+snakeTailY:	.word 2
 direction:	.word 97 #initially moving up
 tailDirection:	.word 97
 # direction variable
@@ -34,7 +34,7 @@ main:
 	la $a2, grid_hard
 	jal draw_grid
 	
-	li $s1, 5 
+	li $s1, 4 
 	
 aaa:
 	bge $s1, 35, fim
@@ -262,7 +262,6 @@ mostra_cor:
 	jr	$ra
 
 
-0
 #animated_sprite(id, x, y, mov_x, mov_y)	
 .globl animated_sprite
 animated_sprite:
