@@ -318,8 +318,6 @@ fim_animated:
 	lw	$ra, 32($sp)
 	addi	$sp, $sp, 36
 	
-	
-	
 	jr $ra
 	
 	
