@@ -68,7 +68,7 @@ aaa:
 	
 	add $s1, $s1, 1
 	
-	li $a0, 500
+	li $a0, 250
 	li $v0, 32
 	syscall
 	
@@ -322,7 +322,7 @@ fim_animated:
 	jr $ra
 	
 ############################################################################################################# 	
-    	  	  	
+enableKeyboardInterrupt:  	  	  	
 .ktext 0x80000180  
 
 #Create Interuptions Stack 
@@ -361,8 +361,6 @@ fim_animated:
   	sw   $k0, 120($k1)
   	mflo $k0
   	sw	$k0, 124($k1)
-  	
-printStringAdress(stringGenericEx)
 	
 	mfc0	$s0, $13
 	andi	$s0, 0xFC
@@ -374,7 +372,6 @@ printStringAdress(stringGenericEx)
   	jr 	$s1
   
 case0:
-	printStringAdress(stringHWInterruptEx)
 
 	la  	$s0, kbBuffer	# Load Sprite adress , Sprite Name
 	lw 	$s1, 0($s0) 	# Load kbBuffer.isValid
@@ -460,10 +457,6 @@ hwInterruptEnd:
 	sw 	$s4, 12($s0)	# kbBuffer.isPaused = s4;
  	
 	b   	interruptEnd
-
-default:
-
-	printStringAdress(stringOutOfRangeEx)
 	
 interruptEnd:
 #Restore Interuptions Stack 
@@ -514,13 +507,12 @@ interruptEnd:
 	eret
 	
 .kdata
-jtable: .word case0, default
+jtable: .word case0
 
 .align 2
 # Excepion String Table
 stringGenericEx: 	.asciiz "\n Exception Occurred: "
 stringHWInterruptEx:	.asciiz "HW Interrupt\n"
-stringOutOfRangeEx: 	.asciiz "Out Of Range\n"
 stringHere: 	.asciiz "here!\n"
 .align 2
 kernelRegisters: .space    256
