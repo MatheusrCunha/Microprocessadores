@@ -1,10 +1,10 @@
 .include "graphics.inc"
 
 #Snake Information
-snakeHeadX: 	.word 5
-snakeHeadY:	.word 3
-snakeTailX:	.word 4
-snakeTailY:	.word 3
+snakeHeadX: 	.word 4
+snakeHeadY:	.word 2
+snakeTailX:	.word 3
+snakeTailY:	.word 2
 direction:	.word 97 #initially moving up
 tailDirection:	.word 97
 # direction variable
@@ -41,8 +41,8 @@ aaa:
 	li $a0, 26
 	lw $a1, snakeHeadX
 	lw $a2, snakeHeadY
-	li $a3, 1
-	li $s0, 0
+	li $a3, 0
+	li $s0, 1
 	jal animated_sprite
 	
 	add $a1, $a1, $a3
@@ -55,8 +55,8 @@ aaa:
 	li $a0, 25
 	lw $a1, snakeTailX
 	lw $a2, snakeTailY
-	li $a3, 1
-	li $s0, 0
+	li $a3, 0
+	li $s0, 1
 	jal animated_sprite
 	
 	add $a1, $a1, $a3
@@ -66,6 +66,10 @@ aaa:
 	sw $a2, snakeTailY
 	
 	add $s1, $s1, 1
+	
+	li $a0, 500
+	li $v0, 32
+	syscall
 	
 	j aaa
 fim:
@@ -262,28 +266,25 @@ mostra_cor:
 	jr	$ra
 
 
-
 #animated_sprite(id, x, y, mov_x, mov_y)	
 .globl animated_sprite
 animated_sprite:
 
-	addi	$sp, $sp, -32
+	addi	$sp, $sp, -36
 	sw	$a0, ($sp)
 	sw	$a1, 4($sp)
 	sw	$a2, 8($sp)
-	sw	$s0, 12($sp)
-	sw	$s1, 16($sp)
-	sw	$s2, 20($sp)
-	sw	$s3, 24($sp)
-	sw	$ra, 28($sp)
+	sw	$a3, 12($sp)
+	sw	$s0, 16($sp)
+	sw	$s1, 20($sp)
+	sw	$s2, 24($sp)
+	sw	$s3, 28($sp)
+	sw	$ra, 32($sp)
 	
 	move $s1, $a2
 	move $a2, $a0
 	move $a0, $a1
 	move $a1, $s1
-	
-	addi $a0, $a0, -1
-	addi $a1, $a1, -1
 	
 	mul $a0, $a0, 7
 	mul $a1, $a1, 7
@@ -309,12 +310,13 @@ fim_animated:
 	lw	$a0, ($sp)
 	lw	$a1, 4($sp)
 	lw	$a2, 8($sp)
-	lw	$s0, 12($sp)
-	lw	$s1, 16($sp)
-	lw	$s2, 20($sp)
-	lw	$s3, 24($sp)
-	lw	$ra, 28($sp)
-	addi	$sp, $sp, 32
+	lw	$a3, 12($sp)
+	lw	$s0, 16($sp)
+	lw	$s1, 20($sp)
+	lw	$s2, 24($sp)
+	lw	$s3, 28($sp)
+	lw	$ra, 32($sp)
+	addi	$sp, $sp, 36
 	
 	jr $ra
 	
