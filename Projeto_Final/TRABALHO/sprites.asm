@@ -208,9 +208,6 @@ moveSpriteKbBufferIsValidCheck:
 	beq	$s5, $zero, moveSpriteKbBufferIsNotValid	# (kbBuffer.isValid == 0) ? kbBufferIsNotValid
 	move	$a1, $s6 						# a1 = kbBuffer.X
 	move $a2, $s7						# a2 = kbBuffer.Y
-	jal	checkWall						# always (x,0) or (0,y) being x|y -> (int)(-1 to 1)
-	bge	$v0,	69, moveSpriteKbBufferIsNotValid		# (returnNextId(struct sprite) > 69) ? goto moveSpriteEnd
-	
 	add 	$s3, $zero, $s6				# sprite.movX = kbBuffer.X;
 	add 	$s4, $zero, $s7				# sprite.movY = kbBuffer.Y;
 	add	$s5, $zero, $zero				# kbBuffer.isValid = 0;
@@ -220,8 +217,6 @@ moveSpriteKbBufferIsNotValid:
 									# a0 = &sprite
 	move	$a1, $s3						# a1 = sprite.movX
 	move $a2, $s4						# a2 = sprite.movY
-	jal	checkWall						# always (x,0) or (0,y) being x|y -> (int)(-1 to 1)
-	bge	$v0,	69, moveSpriteStopIt			# (returnNextId(struct sprite) > 69) ? goto moveSpriteEnd
 
 moveSpriteDoTheThing:
 	add 	$s1, $s1, $s3			# sprite.posX += sprite.movX
@@ -254,84 +249,6 @@ moveSpriteEnd:
 	
 #############################################################################################################
 
-#############################################################################################################
-
-.globl checkWall
- checkWall:		# (int grid.id)checkWall(&grid, movX , movY )
-	addi $sp, $sp, -64
-	sw 	$ra, 0($sp)
-	sw 	$s0, 4($sp)
-	sw 	$s1, 8($sp)
-	sw 	$s2, 12($sp)
-	sw 	$s3, 16($sp)
-	sw 	$s4, 20($sp)
-	
-	
-#animated_sprite (%name, %id, %pos_x, %pos_y, %mov_x, %mov_y)
-#		ofset:	&  ,  0  ,   4  ,    8  ,   12  ,  16	
-	lw	$s0, 4($a0) 	# s0 = animatedSprite.posX;
-	lw	$s1, 8($a0) 	# s1 = animatedSprite.posY;
-	move	$s2, $a1	# s2 = animatedSprite.movX;
-	move	$s3, $a2	# s3 = animatedSprite.movY;
-	la 	$s4, grid_easy
-
-checkWallCheckUpLeft:
-	jal 	checkWallMain
-	add	$t0, $zero, $v0	
-
-checkWallCheckUpRight:
-	add 	$s0, $s0, 6 		# tPosX=animatedSprite.posX + 6;
-	jal 	checkWallMain
-	
-	sgt	$t1, $v0, $t0
-	beq	$t1, $zero, checkWallCheckDownRight
-	add	$t0, $zero, $v0
-	
-checkWallCheckDownRight:
-	add 	$s1, $s1, 6 		# tPosY=animatedSprite.posY + 6;
-	jal 	checkWallMain
-	
-	sgt	$t1, $v0, $t0
-	beq	$t1, $zero, checkWallCheckDownbLeft
-	add	$t0, $zero, $v0	
-
-checkWallCheckDownbLeft:
-	add	$s0, $s0, -6 		# tPosX=animatedSprite.posX - 6;
-	jal 	checkWallMain
-	
-	sgt	$t1, $v0, $t0
-	beq	$t1, $zero, checkWallEnd
-	add	$t0, $zero, $v0
-	j	checkWallEnd
-	
-checkWallMain:	
-
-	add $t2, $s0, $s2		# tPosX += animatedSprite.movX;
-	add $t3, $s1, $s3		# tPosY += animatedSprite.movY;
-	
-	div $t2, $t2, X_SCALE	# tPosX /= 7;
-	div $t3, $t3, Y_SCALE	# tPosY /= 7;
-	
-	mul	$t3, $t3, GRID_COLS	# tPosY *= 36;
-	add	$t2, $t2, $t3		# tPosX += tPosY;
-	
-	add	$t2, $t2, $s4		# (tPosX + tPosY) += &grid 
-	lb	$v0, ($t2)		# v0 = grid[tPosX][tPosY];	
-	jr 	$ra				# return	
-	
-checkWallEnd:
-	add	$v0, $zero, $t0
-	lw 	$ra, 0($sp)
-	lw 	$s0, 4($sp)
-	lw 	$s1, 8($sp)
-	lw 	$s2, 12($sp)
-	lw 	$s3, 16($sp)
-	lw 	$s4, 20($sp)
-	
-	addi $sp, $sp, 64
-	jr 	$ra				# return		
-
-#############################################################################################################
 
 #############################################################################################################    
 
