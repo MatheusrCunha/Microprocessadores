@@ -1,0 +1,4 @@
+funçao kbbuffer = animated
+movesprite somente atualiza a posiçao
+alterar ID do sprite quando muda de direção(tecla).
+Spawn Fruta.
