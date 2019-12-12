@@ -2,8 +2,6 @@
 .include "Macros.asm"
 .include "control.asm"
 
-scoreData:
-.word 0
 mainLoopCount:
 .word 0
 
@@ -44,140 +42,6 @@ main:
 	DelayMs(20)
    	j 	main			# goto main
  
-#############################################################################################################    	
-
-#############################################################################################################    
-
-.globl redrawGrid
-redrawGrid:				# void drawSprite(struct animetedSprite)	
-	
-	addi $sp, $sp, -64		#allocate 8 bytes on stack
-	sw 	$ra, 12($sp)
-	sw 	$s0, 16($sp)
-	sw 	$s1, 20($sp)
-	sw 	$s2, 24($sp)
- 	sw 	$s3, 28($sp)
-	sw 	$s4, 32($sp)
-	sw 	$s5, 36($sp)
-	sw 	$s6, 40($sp)
-	sw 	$s7, 44($sp)
-	
-	##################### sprite.name
-	lw 	$s0, 4($a0)	# sprite.posX
-	lw 	$s1, 8($a0)	# sprite.posY 
-	lw 	$s2, 12($a0)	# sprite.movX
-	lw 	$s3, 16($a0)	# sprite.movY 
-	add 	$s4, $zero, $zero	# s4 = 0
-	la 	$s5, sprites 	# s3 = &sprites
-	la 	$s6, colors	# s4 = &colors
-	la	$s7, FB_PTR	# Dysplay adress
-	
-	lw 	$t0, 4($a0)	# sprite.posX
-	lw 	$t1, 8($a0)	# sprite.posY 
-	beq 	$s2, -1, redrawGridPosXIsMinusOne
-	beq 	$s2,  1, redrawGridPosEnd
-redrawGridCheckPosY:
-	lw 	$t0, 4($a0)	# sprite.posX
-	lw 	$t1, 8($a0)	# sprite.posY 
-	beq 	$s3, -1, redrawGridPosYIsMinusOne
-	beq 	$s3,  1, redrawGridPosEnd
-	b	redrawGridEnd
-
-redrawGridPosXIsMinusOne:
-	addi	$t0, $s0, 6
-	b	redrawGridPosEnd
-
-redrawGridPosYIsMinusOne:
-	addi	$t1, $s1, 6
-	b	redrawGridPosEnd
-
-redrawGridPosEnd:
-
-	div 	$t2, $t0, X_SCALE
-	mfhi $t5
-	div 	$t3, $t1, Y_SCALE
-	mfhi $t6
-	mul 	$t6, $t6, X_SCALE
-		
-	la	$t9, grid_easy
-	mul 	$t4, $t3, GRID_ROWS
-	add  $t4, $t4, $t2
-	add 	$t9, $t9, $t4
-	lb	$t4, ($t9)
-	add 	$t4, $t4, GRID_ID_OFFSET
-	
-	#la	$t8, sprites
-	mul 	$t4, $t4, SPRITE_SIZE
-	add	$t4, $t4, $t5
-	add	$t4, $t4, $t6
-	add 	$t4, $t4, $s5
-	#lb	$t6, ($t4)
-	
-	#FB_PTR	# Dysplay adress
-	mul 	$t5, $t1, 1024		# posY * FB_YRES
-	mul 	$t6, $t0, 4		# posX * 4
-	add 	$t5, $t6, $t5
-	add	$t5, $t5, $s7
-
-	beq 	$s2, -1, redrawGridSpriteColBegin
-	beq 	$s2,  1, redrawGridSpriteColBegin
-	beq 	$s3, -1, redrawGridSpriteRowBegin
-	beq 	$s3,  1, redrawGridSpriteRowBegin
-	b	redrawGridPosEnd
-
-redrawGridSpriteColBegin:
-	add	$s2, $zero, $zero
-	
-redrawGridSpriteColLoop:	
-	bge 	$s4, Y_SCALE, redrawGridCheckPosY
-	addi	$s4, $s4, 1
-
-	lb	$t6, ($t4)
-	addi	$t4, $t4, 7	# &sprite += 7
-	
-	sll	$t6, $t6, 2	# color id * 4
-	add	$t6, $t6, $s6 	# color id += &color 
-	lw 	$t6,	($t6)
-
-	sw	$t6, ($t5)
-	addi	$t5, $t5, 1024	#draw next X pixel
-	
-	# compensate display pointer adress to draw the next pixel
-	b redrawGridSpriteColLoop
-
-redrawGridSpriteRowBegin:
-	add	$s4, $zero, $zero
-redrawGridSpriteRowLoop:
-	bge 	$s4, X_SCALE, redrawGridEnd	# ((s3 <= 49) ? drawSpriteEnd)
-	addi	$s4, $s4, 1
-
-	lb	$t6, ($t4)
-	addi	$t4, $t4, 1	# &sprite += 7
-	
-	sll	$t6, $t6, 2	# color id * 4
-	add	$t6, $t6, $s6 	# color id += &color 
-	lw 	$t6, ($t6)
-
-	sw	$t6, ($t5)
-	addi	$t5, $t5, 4	#draw next X pixel
-	
-	b redrawGridSpriteRowLoop
-	
-redrawGridEnd:
-
-	lw 	$ra, 12($sp)
-	lw 	$s0, 16($sp)
-	lw 	$s1, 20($sp)
-	lw 	$s2, 24($sp)
- 	lw 	$s3, 28($sp)
-	lw 	$s4, 32($sp)
-	lw 	$s5, 36($sp)
-	lw 	$s6, 40($sp)
-	lw 	$s7, 44($sp)
-	
-	addi	$sp, $sp, 64		
-    	jr  	$ra				# return
-    	
 ######################################################################################################
 
 ######################################################################################################
@@ -206,26 +70,26 @@ moveSprite:
 	
 moveSpriteKbBufferIsValidCheck:	
 	beq	$s5, $zero, moveSpriteKbBufferIsNotValid	# (kbBuffer.isValid == 0) ? kbBufferIsNotValid
-	move	$a1, $s6 						# a1 = kbBuffer.X
-	move $a2, $s7						# a2 = kbBuffer.Y
+	move	$a1, $s6 				# a1 = kbBuffer.X
+	move 	$a2, $s7				# a2 = kbBuffer.Y
 	add 	$s3, $zero, $s6				# sprite.movX = kbBuffer.X;
 	add 	$s4, $zero, $s7				# sprite.movY = kbBuffer.Y;
-	add	$s5, $zero, $zero				# kbBuffer.isValid = 0;
+	add	$s5, $zero, $zero			# kbBuffer.isValid = 0;
 	b	moveSpriteDoTheThing			# if input data is valid
 
 moveSpriteKbBufferIsNotValid:	
-									# a0 = &sprite
-	move	$a1, $s3						# a1 = sprite.movX
-	move $a2, $s4						# a2 = sprite.movY
+					# a0 = &sprite
+	move	$a1, $s3		# a1 = sprite.movX
+	move 	$a2, $s4		# a2 = sprite.movY
 
 moveSpriteDoTheThing:
-	add 	$s1, $s1, $s3			# sprite.posX += sprite.movX
-	add 	$s2, $s2, $s4			# sprite.posY += sprite.movY
+	add 	$s1, $s1, $s3		# sprite.posX += sprite.movX
+	add 	$s2, $s2, $s4		# sprite.posY += sprite.movY
 	b 	moveSpriteEnd
 	
 moveSpriteStopIt:		
-	add	$s3, $zero, $zero				# sprite.movX = 0;
-	add	$s4, $zero, $zero				# sprite.movY = 0;
+	add	$s3, $zero, $zero	# sprite.movX = 0;
+	add	$s4, $zero, $zero	# sprite.movY = 0;
 	
 moveSpriteEnd:
 
@@ -245,10 +109,9 @@ moveSpriteEnd:
 	lw 	$s6, 40($sp)
 	lw 	$s7, 44($sp)
 	addi	$sp, $sp, 64		
-    	jr  	$ra				# return
+    	jr  	$ra		# return
 	
 #############################################################################################################
-
 
 #############################################################################################################    
 
@@ -275,7 +138,7 @@ moveSpriteEnd:
 	b returnNextIdElse
 
 returnNextIdIfPosX:
-	add $s0, $s0, 6 		# tPosX=animatedSprite.posX + 6;
+	add $s0, $s0, 6 	# tPosX=animatedSprite.posX + 6;
 	b returnNextIdElse
 	
 returnNextIdIfPosY:
@@ -302,7 +165,7 @@ returnNextIdElse:
 	lw 	$s3, 16($sp)
 	lw 	$s4, 20($sp)
 	addi $sp, $sp, 24	
-	jr 	$ra				# return
+	jr 	$ra		# return
 	
 #############################################################################################################
 
@@ -318,11 +181,11 @@ drawGridHardCoded:		# void drawGrid(byte *grid)
 	li 	$s6, 0		# drawGridCols for
 	
 drawGridRows:					
-	bge  $s1, GRID_ROWS, drawGridCols	# ((i => 1225) ? goto drawGridExit)
+	bge  $s1, GRID_ROWS, drawGridCols	
 	addi $s1, $s1, 1			# s1++
 				
 	lb   $t1, ($s0)			# t1 = *(grid) 
-	addi $s0, $s0, 1			# &grid++
+	addi $s0, $s0, 1		# &grid++
 	addi $t1, $t1, GRID_ID_OFFSET	# sprite.ID -= 64
 	mul	$t1, $t1, SPRITE_SIZE	#
 	la 	$t2,sprites
@@ -387,27 +250,26 @@ drawSprite:				# void drawSprite(struct animetedSprite)
 	sw 	$s6, 40($sp)
 	sw 	$s7, 44($sp)
 	
-	##################### a0 = &pacman			# sprite.name
-	lw 	$s0, 0($a0)	# s0 = pacman[0]		# sprite.id
-	lw 	$s1, 4($a0)	# s1 = pacman[1]		# sprite.posX
-	lw 	$s2, 8($a0)	# s2 = pacman[2]		# sprite.posY 
+	##################### a0 = &snake			# sprite.name
+	lw 	$s0, 0($a0)	# s0 = snake[0]		# sprite.id
+	lw 	$s1, 4($a0)	# s1 = snake[1]		# sprite.posX
+	lw 	$s2, 8($a0)	# s2 = snake[2]		# sprite.posY 
 	la 	$s3, sprites 	# s3 = &sprites
 	la 	$s4, colors	# s4 = &colors
 	add 	$s5, $zero, $zero	# s5 = 0
 	la	$s6, FB_PTR	# Dysplay adress
 	add 	$s7, $zero, $zero	# s7 = 0
 	
-	mul	$s1,	$s1, 4 #256 * 4
-	add 	$s6,	$s6,	$s1
-	mul	$s2,	$s2, 1024 #256 * 4
-	add 	$s6,	$s6,	$s2
+	mul	$s1, $s1, 4 	#256 * 4
+	add 	$s6, $s6, $s1
+	mul	$s2, $s2, 1024 	#256 * 4
+	add 	$s6, $s6, $s2
 	
 	mul 	$t0, $s0, SPRITE_SIZE	# t0 = sprite.id * 49
-	add 	$s3, $t0, $s3			# &sprites += sprite.id * 49
+	add 	$s3, $t0, $s3		# &sprites += sprite.id * 49
 
 drawSpritePixelX:	
 	bge 	$s5, X_SCALE, drawSpritePixelY	# ((s3 <= 49) ? drawSpriteEnd)
-	#bge 	$s5, 6, drawSpritePixelY	# ((s3 <= 49) ? drawSpriteEnd)
 	addi	$s5, $s5, 1
 
 	lb 	$t2, ($s3)
@@ -420,9 +282,8 @@ drawSpritePixelX:
 	# compensate display pointer adress to draw the next pixel
 	b drawSpritePixelX
 		
-drawSpritePixelY:
-	#bge  $s7, Y_SCALE, drawSpriteEnd	# ((t => 7) ? goto drawGridDrawPixelXEnd()	
-	bge  $s7, 6, drawSpriteEnd	# ((t => 7) ? goto drawGridDrawPixelXEnd()	
+drawSpritePixelY:	
+	bge  $s7, 6, drawSpriteEnd		# ((t => 7) ? goto drawGridDrawPixelXEnd()	
 	addi	$s7, $s7, 1	
 	add	$s5, $zero, $zero
 	addi	$s6, $s6, 996 # s2 += (256-7)*4 
@@ -441,7 +302,7 @@ drawSpriteEnd:
 	lw 	$s7, 44($sp)
 	
 	addi	$sp, $sp, 64		
-    	jr  	$ra				# return
+    	jr  	$ra		# return
     	
 #############################################################################################################	
 
@@ -449,9 +310,8 @@ drawSpriteEnd:
 
  enableKeyboardInterrupt:
 	li 	$t0, 0xffff0002	# t0 = 0xffff0002
-	#add 	$t0, $zero, 0x00000002	# t0 = 0xffff0002
-	sw 	$t0, 0xffff0000		# *((uint32_t) 0xffff0000) = t0
-	jr   $ra					# return
+	sw 	$t0, 0xffff0000	# *((uint32_t) 0xffff0000) = t0
+	jr   	$ra		# return
 
 #############################################################################################################    
 
@@ -460,10 +320,10 @@ drawSpriteEnd:
 .ktext 0x80000180  
 
 #Create Interuptions Stack 
-  	move	$k0, $at      # $k0 = $at 
-  	la	$k1, kernelRegisters    
-  	sw	$k0, 0($k1)   
-  	sw	$v0, 4($k1)
+  	move $k0, $at      # $k0 = $at 
+  	la   $k1, kernelRegisters    
+  	sw   $k0, 0($k1)   
+  	sw   $v0, 4($k1)
   	sw   $v1, 8($k1)
   	sw   $a0, 16($k1)
   	sw   $a1, 20($k1)
@@ -494,7 +354,7 @@ drawSpriteEnd:
 	mfhi $k0
   	sw   $k0, 120($k1)
   	mflo $k0
-  	sw	$k0, 124($k1)
+  	sw   $k0, 124($k1)
   	
 printStringAdress(stringGenericEx)
 	
@@ -523,8 +383,8 @@ case0:
 	beq 	$s7, 68, hwInterruptGoRight	# Key D, go Right
 	beq 	$s7, 97, hwInterruptGoLeft	# Key a, go Left
 	beq 	$s7, 65, hwInterruptGoLeft	# Key A, go Left
-	beq 	$s7,119, hwInterruptGoUp		# Key w, go Up
-	beq 	$s7, 87, hwInterruptGoUp		# Key W, go Up
+	beq 	$s7,119, hwInterruptGoUp	# Key w, go Up
+	beq 	$s7, 87, hwInterruptGoUp	# Key W, go Up
 	beq 	$s7,115, hwInterruptGoDown	# Key s, go Down
 	beq 	$s7, 83, hwInterruptGoDown	# Key S, go Down
 	beq 	$s7, 32, hwInterruptPause	# Key Space, Pause game
@@ -694,13 +554,6 @@ interruptEnd:
 	mthi  	$k0
 	lw    	$k0, 124($k1)
 	mtlo  	$k0
-	#mfc0  	$k0, $14      # $k0 = EPC 
-	#addiu 	$k0, $k0, 4   # Increment $k0 by 4 
-	#mtc0  	$k0, $14      # EPC = point to next instruction 
-	#eret
-	
-	# the default interruption return does not work with this project,
-	# since the edited values cant be changed betwen pacman main funtions. 
 
 	la	$k0, main
 	mtc0	$k0, $14      # EPC = point to next instruction 
@@ -711,8 +564,8 @@ jtable: .word case0, case1, case2, case3, case4, case5, case6, case7, case8, cas
 
 .align 2
 # Excepion String Table
-stringGenericEx: 	.asciiz "\n Exception Occurred: "
-stringHWInterruptEx:	.asciiz "HW Interrupt\n"	  
+stringGenericEx: 	.asciiz "\n Exceção ocorrida: "
+stringHWInterruptEx:	.asciiz "Interrupção de Hardware\n"	  
 stringLoadErrorEx: 	.asciiz "Address Error caused by load or instruction fetch\n"
 stringStoreErrorEx: 	.asciiz "Address Error caused by store instruction\n"
 stringBusInstErrorEx: 	.asciiz "Bus error on instruction fetch\n"
