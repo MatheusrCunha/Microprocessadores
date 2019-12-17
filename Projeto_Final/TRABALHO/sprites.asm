@@ -41,8 +41,6 @@ main:
 	
 	DelayMs(50)
    	j 	main			# goto main
- 
-######################################################################################################
 
 ######################################################################################################
 .globl moveSprite
@@ -67,6 +65,23 @@ moveSprite:
 	lw 	$s5, 0($s0)	# kbBuffer.isValid
 	lw 	$s6, 4($s0)	# kbBuffer.X
 	lw 	$s7, 8($s0)	# kbBuffer.Y
+	
+	#TENTATIVA CHECK WALL
+	
+#	add 	$t5, $zero, $s1		#posicao atual X
+#	add	$t6, $zero, $s2		#posicao atual Y
+#	add 	$t5, $t5, $s3		#proxima posicao X
+#	add	$t6, $t6, $s4		#proxima posicao Y
+#	la 	$t7, grid_hard
+#	add 	$t5, $t5, $t6
+#	add  	$t5, $t5, $t7
+#	lb   	$t5, 0($t5)
+#	bge 	$t8, 5, game_over
+#	j	moveSpriteKbBufferIsValidCheck
+#	
+#game_over:
+#	li $v0, 10
+#	syscall 
 	
 moveSpriteKbBufferIsValidCheck:	
 	beq	$s5, $zero, moveSpriteKbBufferIsNotValid	# (kbBuffer.isValid == 0) ? kbBufferIsNotValid
@@ -110,8 +125,6 @@ moveSpriteEnd:
 	lw 	$s7, 44($sp)
 	addi	$sp, $sp, 64		
     	jr  	$ra		# return
-	
-#############################################################################################################
 
 #############################################################################################################    
 
@@ -125,18 +138,17 @@ drawGridHardCoded:		# void drawGrid(byte *grid)
 	li 	$s6, 0		# drawGridCols for
 	
 drawGridRows:					
-	bge  $s1, GRID_ROWS, drawGridCols	
-	addi $s1, $s1, 1			# s1++
-				
-	lb   $t1, ($s0)			# t1 = *(grid) 
-	addi $s0, $s0, 1		# &grid++
-	addi $t1, $t1, GRID_ID_OFFSET	# sprite.ID -= 64
-	mul	$t1, $t1, SPRITE_SIZE	#
+	bge  	$s1, GRID_ROWS, drawGridCols	
+	addi 	$s1, $s1, 1			# s1++		
+	lb   	$t1, ($s0)			# t1 = *(grid) 
+	addi 	$s0, $s0, 1			# &grid++
+	addi 	$t1, $t1, GRID_ID_OFFSET	# sprite.ID -= 64
+	mul	$t1, $t1, SPRITE_SIZE		#
 	la 	$t2,sprites
 	add 	$t1, $t1, $t2 
 
 drawGridDrawPixelX:
-	bge  $s4, X_SCALE, drawGridDrawPixelY	# ((t => 7) ? goto drawGridDrawPixelXEnd()	
+	bge  	$s4, X_SCALE, drawGridDrawPixelY	# ((t => 7) ? goto drawGridDrawPixelXEnd()	
 	addi	$s4, $s4, 1
 	lb 	$t2, ($t1)
 	addi	$t1, $t1, 1	# &sprite++
@@ -149,7 +161,7 @@ drawGridDrawPixelX:
 	b drawGridDrawPixelX
 		
 drawGridDrawPixelY:
-	bge  $s5, Y_SCALE, drawGridDrawSprite	# ((t => 7) ? goto drawGridDrawPixelXEnd()	
+	bge  	$s5, Y_SCALE, drawGridDrawSprite	# ((t => 7) ? goto drawGridDrawPixelXEnd()	
 	addi	$s5, $s5, 1	
 	add	$s4, $zero, $zero
 	addi	$s2, $s2, 996 # s2 += (256-7)*4
@@ -164,7 +176,7 @@ drawGridDrawSprite:
 	b drawGridRows
 	
 drawGridCols:	
-	bge  $s6, GRID_COLS, drawGridEnd	# ((t => 7) ? goto drawGridDrawPixelXEnd()	
+	bge  	$s6, GRID_COLS, drawGridEnd	# ((t => 7) ? goto drawGridDrawPixelXEnd()	
 	addi	$s6, $s6, 1
 	add	$s5, $zero, $zero
 	add	$s4, $zero, $zero
@@ -174,16 +186,14 @@ drawGridCols:
 	b drawGridRows
 	
 drawGridEnd:	
-	jr $ra
-	
-#############################################################################################################    
+	jr $ra    
 
 #############################################################################################################    
 
 .globl drawSprite
 drawSprite:				# void drawSprite(struct animetedSprite)	
 	
-	addi $sp, $sp, -64		#allocate 8 bytes on stack
+	addi 	$sp, $sp, -64		#allocate 8 bytes on stack
 	sw 	$ra, 12($sp)
 	sw 	$s0, 16($sp)
 	sw 	$s1, 20($sp)
@@ -227,7 +237,7 @@ drawSpritePixelX:
 	b drawSpritePixelX
 		
 drawSpritePixelY:	
-	bge  $s7, 6, drawSpriteEnd		# ((t => 7) ? goto drawGridDrawPixelXEnd()	
+	bge  	$s7, 6, drawSpriteEnd		# ((t => 7) ? goto drawGridDrawPixelXEnd()	
 	addi	$s7, $s7, 1	
 	add	$s5, $zero, $zero
 	addi	$s6, $s6, 996 # s2 += (256-7)*4 
@@ -250,14 +260,10 @@ drawSpriteEnd:
     	
 #############################################################################################################	
 
-#############################################################################################################
-
  enableKeyboardInterrupt:
 	li 	$t0, 0xffff0002	# t0 = 0xffff0002
 	sw 	$t0, 0xffff0000	# *((uint32_t) 0xffff0000) = t0
 	jr   	$ra		# return
-
-#############################################################################################################    
 
 ############################################################################################################# 	
     	  	  	
@@ -351,8 +357,8 @@ hwInterruptGoLeft:
  	
 hwInterruptPause:
 	
-	beq $s4, 0, hwInterruptPauseIsZero
-	beq $s4, 1, hwInterruptPauseIsOne
+	beq 	$s4, 0, hwInterruptPauseIsZero
+	beq 	$s4, 1, hwInterruptPauseIsOne
 	
 hwInterruptPauseIsZero:
 	li  	$s4, 1	#isPaused
@@ -520,6 +526,6 @@ stringTrapEx: 		.asciiz "Error caused by trap instruction\n"
 stringInvalidEx: 	.asciiz "Invalid Exception\n"
 stringFloatInstEx: 	.asciiz "Error caused by floating_point instruction\n"
 stringOutOfRangeEx: 	.asciiz "Out Of Range\n"
-stringHere: 	.asciiz "here!\n"
+stringHere: 		.asciiz "here!\n"
 .align 2
 kernelRegisters: .space    256
