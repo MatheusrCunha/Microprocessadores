@@ -31,7 +31,7 @@ startGame:
 
 	#b main
 	
-#############################################################################################################    
+######################################################################################################   
 
 main:	
 	la 	$a0, snake	# a0 = &snake
@@ -39,7 +39,7 @@ main:
 	jal	moveSprite
 	jal 	drawSprite	# void drawSprite(struct animetedSprite)
 	
-	DelayMs(20)
+	DelayMs(50)
    	j 	main			# goto main
  
 ######################################################################################################
@@ -115,64 +115,8 @@ moveSpriteEnd:
 
 #############################################################################################################    
 
-.globl returnNextId
- returnNextId:		# int ID returnNextId(X,Y, *gride)
-	addi $sp, $sp, -24
-	sw 	$ra, 0($sp)
-	sw 	$s0, 4($sp)
-	sw 	$s1, 8($sp)
-	sw 	$s2, 12($sp)
-	sw 	$s3, 16($sp)
-	sw 	$s4, 20($sp)
-	
-#animated_sprite (%name, %id, %pos_x, %pos_y, %mov_x, %mov_y)
-#		ofset:	&  ,  0  ,   4  ,    8  ,   12  ,  16	
-	lw	$s0, 4($a0) 	# s0 = animatedSprite.posX;
-	lw	$s1, 8($a0) 	# s1 = animatedSprite.posY;
-	lw	$s2, 12($a0)	# s2 = animatedSprite.movX;
-	lw	$s3, 16($a0)	# s3 = animatedSprite.movY;
-	la 	$s4, grid_easy
-	
-	beq 	$s2, -1, returnNextIdIfPosX	# animatedSprite.movX == -1 ? goto returnNextIdIfPosX;
-	beq 	$s3, -1, returnNextIdIfPosY	# animatedSprite.movY == -1 ? goto returnNextIdIfPosY;
-	b returnNextIdElse
-
-returnNextIdIfPosX:
-	add $s0, $s0, 6 	# tPosX=animatedSprite.posX + 6;
-	b returnNextIdElse
-	
-returnNextIdIfPosY:
-	add $s1, $s1, 6		# tPosY=animatedSprite.posY + 6;
-	b returnNextIdElse
-
-returnNextIdElse:	
-	div $s0, $s0, X_SCALE	# tPosX /= 7;
-	div $s1, $s1, Y_SCALE	# tPosY /= 7;
-	
-	add $s0, $s0, $s2		# tPosX += animatedSprite.movX;
-	add $s1, $s1, $s3		# tPosY += animatedSprite.movY;
-	
-	mul	$s1, $s1, GRID_COLS	# tPosY *= 36;
-	add	$s0, $s0, $s1		# tPosX += tPosY;
-	
-	add	$s4, $s0,	$s4			# tPosX += &grid 
-	lb	$v0, ($s4)			# v0 = grid[tPosX][tPosY];	
-
-	lw 	$ra, 0($sp)
-	lw 	$s0, 4($sp)
-	lw 	$s1, 8($sp)
-	lw 	$s2, 12($sp)
-	lw 	$s3, 16($sp)
-	lw 	$s4, 20($sp)
-	addi $sp, $sp, 24	
-	jr 	$ra		# return
-	
-#############################################################################################################
-
-#############################################################################################################    
-
 drawGridHardCoded:		# void drawGrid(byte *grid)
-	la 	$s0, grid_easy	# &grid
+	la 	$s0, grid_hard	# &grid
 	li 	$s1, 0		# drawGridRows for
 	la	$s2, FB_PTR	# Dysplay adress
 	la 	$s3, colors	# color words adress
@@ -376,8 +320,8 @@ case0:
  	lw 	$s3, 8($s0)	# Load kbBuffer.y
 	lw 	$s4, 12($s0)	# Load kbBuffer.isPaused
 	
-	la 	$s7, 0xffff0004  	# Load keyboard info on $s1 to the right address
-	lw 	$s7, ($s7)		# Load keyboard data from 0xffff0004
+	la 	$s7, 0xffff0004 # Load keyboard info on $s1 to the right address
+	lw 	$s7, ($s7)	# Load keyboard data from 0xffff0004
 	
 	beq 	$s7,100, hwInterruptGoRight	# Key d, go Right
 	beq 	$s7, 68, hwInterruptGoRight	# Key D, go Right
@@ -421,13 +365,11 @@ hwInterruptPauseIsOne:
 hwInterruptEnter:
 
 	beq 	$s4, 0, hwInterruptEnd	
-	
 	add	$s1, $zero, $zero	# s1 = 0;
  	sw 	$s1, 0($s0) 	# kbBuffer.isValid = 0;
  	sw 	$s1, 4($s0)	# kbBuffer.x = 0;
  	sw 	$s1, 8($s0)	# kbBuffer.y = 0;
 	sw 	$s1, 12($s0)	# kbBuffer.isPaused = 0;
-	
 	la	$k0, startGame
 	mtc0	$k0, $14      # EPC = point to next instruction 
 	eret
